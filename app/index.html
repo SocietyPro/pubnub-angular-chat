@@ -26,7 +26,7 @@
       <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
     <![endif]-->
     <material-sidenav class="material-sidenav-left">
-      <div ng-show="logged()">
+      <!--<div ng-show="logged()">
       <material-button ng-click="createChannel()">Create Conversation</material-button>
       <material-list>
          <material-item ng-repeat="channel in channels">
@@ -34,8 +34,8 @@
          </material-item> 
          
       </material-list>
-      </div>
-      <div ng-show="selectedChannel">
+      </div>-->
+      <div>
       <h2>Connected People</h2>
       <material-list>
          <material-item ng-repeat="user in users"> 
@@ -59,7 +59,7 @@
 
       </material-toolbar>
 
-      <div flex="80" layout="vertical" ng-show="selectedChannel">
+      <div flex="80" layout="vertical">
         <div layout="horizontal">
           <material-input-group>
             <material-input flex placeholder="New Message" type="text" ng-model="newMessage">
