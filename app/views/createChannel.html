@@ -1,0 +1,16 @@
+<material-dialog> 
+  <div class="dialog-content"> 
+  <material-input-group>
+    <material-input placeholder="name channel" type="text" ng-model="newChannel">
+  </material-input></material-input-group>
+  <material-input-group ng-show="isChecked">
+    <material-input placeholder="auth key" type="text" ng-model="auth_key">
+  </material-input></material-input-group>
+  </div>
+  <div class="dialog-actions">
+    <material-checkbox ng-model="isChecked" aria-label="Finished?">
+    Make it Private?
+    </material-checkbox>
+    <material-button ng-click="create()" >Create</material-button>
+  </div>
+</material-dialog>
