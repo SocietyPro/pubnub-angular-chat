@@ -21,13 +21,20 @@ angular.module('pajsApp')
 
     $scope.users = [];
     $scope.messages = [];
+    $scope.userData;
 
     $rootScope.$watch('users',function () {
+      console.log($rootScope.users);
       $scope.users = $rootScope.users;
+      console.log($scope.users);
     });
 
     $rootScope.$watch('messages',function () {
       $scope.messages = $rootScope.messages;
+    });
+
+    $rootScope.$watch('userData',function () {
+      $scope.userData = $rootScope.userData;
     });
 
     $scope.signOut = function () {
@@ -74,64 +81,56 @@ angular.module('pajsApp')
         publish_key:'pub-c-bf1cbccf-f8bf-412a-8e2c-0930f6d87453',
         subscribe_key:'sub-c-5dfe513c-3fbe-11e4-98c8-02ee2ddab7fe',
         secret_key: "sec-c-YzM0OGY3ZmItOGMwNy00ODIzLWFjZjgtZTg4OGUwNzA3ZDRj",
-        auth_key:"myAuthKey",
-        uuid:$scope.uuid
+        uuid:$scope.uuid,
+        ssl:true
       });
       PubNub.ngGrant({
         channel: 'rvb_ganked',
-        read: true,
-        write: true,
-        callback: function() {
-          return console.log("channel all set", arguments);
-        }
-      });
-      PubNub.ngGrant({
-        channel: 'rvb_ganked-pnpres',
         read: true,
         write: false,
         callback: function() {
-          return console.log('channel presence all set', arguments);
+          return PubNub.ngGrant({
+            channel: 'rvb_ganked-pnpres',
+            read: true,
+            write: true,
+            callback: function() {
+              console.log('channel presence all set', arguments);
+              PubNub.ngSubscribe({
+                channel: 'rvb_ganked',
+                error: function() {
+                  return console.log(arguments);
+                }
+              });
+              /* Get a reasonable historical backlog of messages to populate the channels list*/
+              $rootScope.$on(PubNub.ngPrsEv('rvb_ganked'), function(ngEvent, payload) {
+                console.log("got a presence event",ngEvent);
+                console.log(PubNub.ngListPresence('rvb_ganked'));
+                return $rootScope.$apply(function () {
+                  return $rootScope.users = PubNub.ngListPresence('rvb_ganked');
+                });
+              });
+
+              PubNub.ngHereNow({
+                  channel: 'rvb_ganked'
+                });
+              $rootScope.$on(PubNub.ngMsgEv('rvb_ganked'), function(ngEvent, payload) {
+                var msg;
+                msg = payload.message.user ? "[" + payload.message.user + "] " + payload.message.text : "[unknown] " + payload.message;
+                return $rootScope.$apply(function() {
+                  return $rootScope.messages.unshift(msg);
+                });
+              });
+              PubNub.ngHistory({
+                channel: 'rvb_ganked',
+                count: 500
+              });
+              return console.log("initialized");
+            }
+          });    
         }
       });
-      PubNub.ngSubscribe({
-        channel: 'rvb_ganked'
-      });
-      /* Get a reasonable historical backlog of messages to populate the channels list*/
-      $rootScope.$on(PubNub.ngPrsEv('rvb_ganked'), function(ngEvent, payload) {
-            var newData, userData;
-            userData = PubNub.ngPresenceData('rvb_ganked');
-            newData = {};
-            $rootScope.users = PubNub.map(PubNub.ngListPresence('rvb_ganked'), function(x) {
-              var newX;
-              console.log("x",x)
-              newX = x;
-              if (x.replace) {
-                newX = x.replace(/\w+__/, "");
-              }
-              if (x.uuid) {
-                newX = x.uuid.replace(/\w+__/, "");
-              }
-              newData[newX] = userData[x] || {};
-              return newX;
-            });
-            $rootScope.$apply();
-            return $scope.userData = newData;
-        });
-        PubNub.ngHereNow({
-          channel: 'rvb_ganked'
-        });
-        $rootScope.$on(PubNub.ngMsgEv('rvb_ganked'), function(ngEvent, payload) {
-          var msg;
-          msg = payload.message.user ? "[" + payload.message.user + "] " + payload.message.text : "[unknown] " + payload.message;
-          return $rootScope.$apply(function() {
-            return $rootScope.messages.unshift(msg);
-          });
-        });
-      PubNub.ngHistory({
-        channel: 'rvb_ganked',
-        count: 500
-      });
-      console.log("initialized");
+      
+      
       $rootScope.username = $scope.username;
       $hideDialog();      
     }
