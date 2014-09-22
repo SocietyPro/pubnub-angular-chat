@@ -1,6 +1,9 @@
 {
   "name": "pajs",
+  "private": true,
   "version": "0.0.0",
+  "description": "a Sails application",
+  "keywords": [],
   "dependencies": {
     "http-server": "^0.7.1"
   },
@@ -33,13 +36,19 @@
     "load-grunt-tasks": "^0.4.0",
     "time-grunt": "^0.3.1"
   },
-  "engines": {
-    "node": ">=0.10.0"
-  },
   "scripts": {
     "postinstall": "bower install",
     "prestart": "npm install",
     "start": "http-server -a localhost -p 8000",
     "test": "grunt test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:SocietyPro/pubnub-angular-chat.git"
+  },
+  "author": "jimmy",
+  "license": "",
+  "engines": {
+    "node": "0.10.x"
   }
 }
