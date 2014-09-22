@@ -8,41 +8,35 @@
  * Controller of the pajsApp
  */
 angular.module('pajsApp')
-  .controller('MainCtrl',['$scope','PubNub','$rootScope','$materialDialog', function ($scope,PubNub,$rootScope,$materialDialog) {
+  .controller('MainCtrl',['$scope','$rootScope','$materialDialog', function ($scope,$rootScope,$materialDialog) {
     $scope.selectedChannel = "";
-    if (!PubNub.initialized()) {
-      var hideDialog = $materialDialog({
-        templateUrl:"views/login.html",
-        clickOutsideToClose: false,
-        escapeToClose: false,
-        controller: "loginCtrl"
-      });
-    }
+    var hideDialog = $materialDialog({
+      templateUrl:"views/login.html",
+      clickOutsideToClose: false,
+      escapeToClose: false,
+      controller: "loginCtrl"
+    });
 
     $scope.users = [];
     $scope.messages = [];
-    $scope.userData;
+    $scope.username = "";
 
     $rootScope.$watch('users',function () {
-      console.log($rootScope.users);
       $scope.users = $rootScope.users;
-      console.log($scope.users);
     });
 
     $rootScope.$watch('messages',function () {
       $scope.messages = $rootScope.messages;
     });
-
-    $rootScope.$watch('userData',function () {
-      $scope.userData = $rootScope.userData;
+    $rootScope.$watch('username',function () {
+      $scope.username = $rootScope.username;
     });
 
     $scope.signOut = function () {
       // body...
-        PubNub.ngUnsubscribe({
+        $rootScope.pubnub.unsubscribe({
           channel: 'rvb_ganked'
         });
-        PubNub.destroy();
         var hideDialog = $materialDialog({
           templateUrl:"views/login.html",
           clickOutsideToClose: false,
@@ -51,15 +45,11 @@ angular.module('pajsApp')
         });
 
     }
-    
-    $scope.logged = function() {
-      return PubNub.initialized();
-    }
 
 
     $scope.publish = function() {
       console.log('publish', $scope);
-      PubNub.ngPublish({
+      $rootScope.pubnub.publish({
         channel: 'rvb_ganked',
         message: {
           text: $scope.newMessage,
@@ -71,66 +61,67 @@ angular.module('pajsApp')
 
   }])
 
-  .controller('loginCtrl',['$scope','PubNub','$rootScope','$hideDialog',function($scope,PubNub,$rootScope,$hideDialog){
+  .controller('loginCtrl',['$scope','$rootScope','$hideDialog',function($scope,$rootScope,$hideDialog){
     $rootScope.users = [];
     $rootScope.messages = [];
-    $scope.username = 'Cambrian ' + Math.floor(Math.random() * 1000);
+    $rootScope.username = "";
+    $scope.username = 'Cambrian' + Math.floor(Math.random() * 1000);
     $scope.login = function () {
-      $scope.uuid = Math.floor(Math.random() * 1000000) + '__' + $scope.username;
-      PubNub.init({
-        publish_key:'pub-c-bf1cbccf-f8bf-412a-8e2c-0930f6d87453',
-        subscribe_key:'sub-c-5dfe513c-3fbe-11e4-98c8-02ee2ddab7fe',
-        secret_key: "sec-c-YzM0OGY3ZmItOGMwNy00ODIzLWFjZjgtZTg4OGUwNzA3ZDRj",
+      $scope.uuid = $scope.username;
+      $rootScope.pubnub = PUBNUB.init({
+        publish_key:'pub-c-8781d89b-1000-422d-b6ec-b75340d087bc',
+        subscribe_key:'sub-c-fda9bb42-b75a-11e2-bc76-02ee2ddab7fe',
         uuid:$scope.uuid,
         ssl:true
       });
-      PubNub.ngGrant({
+      $rootScope.pubnub.subscribe({
+        restore: false,
         channel: 'rvb_ganked',
-        read: true,
-        write: false,
-        callback: function() {
-          return PubNub.ngGrant({
-            channel: 'rvb_ganked-pnpres',
-            read: true,
-            write: true,
-            callback: function() {
-              console.log('channel presence all set', arguments);
-              PubNub.ngSubscribe({
-                channel: 'rvb_ganked',
-                error: function() {
-                  return console.log(arguments);
-                }
+        connect: function (connect) {
+          $rootScope.pubnub.here_now({
+            channel: "rvb_ganked",
+            callback: function (u) {
+              $rootScope.$apply(function () {
+                // body...
+                $rootScope.users = u.uuids;
               });
-              /* Get a reasonable historical backlog of messages to populate the channels list*/
-              $rootScope.$on(PubNub.ngPrsEv('rvb_ganked'), function(ngEvent, payload) {
-                console.log("got a presence event",ngEvent);
-                console.log(PubNub.ngListPresence('rvb_ganked'));
-                return $rootScope.$apply(function () {
-                  return $rootScope.users = PubNub.ngListPresence('rvb_ganked');
-                });
-              });
-
-              PubNub.ngHereNow({
-                  channel: 'rvb_ganked'
-                });
-              $rootScope.$on(PubNub.ngMsgEv('rvb_ganked'), function(ngEvent, payload) {
-                var msg;
-                msg = payload.message.user ? "[" + payload.message.user + "] " + payload.message.text : "[unknown] " + payload.message;
-                return $rootScope.$apply(function() {
-                  return $rootScope.messages.unshift(msg);
-                });
-              });
-              PubNub.ngHistory({
-                channel: 'rvb_ganked',
-                count: 500
-              });
-              return console.log("initialized");
             }
-          });    
+          });
+        },
+        message: function(m) {
+            var msg;
+            msg = m.user ? "[" + m.user + "] " + m.text : "[unknown] " + m;
+            return $rootScope.$apply(function() {
+              return $rootScope.messages.unshift(msg);
+            });
+        },
+        presence   : function( message, env, channel ) {
+          $rootScope.$apply(function  () {
+            console.log(message);
+            console.log(env);
+            console.log(channel);
+            if (message.action == "join") {
+              $rootScope.users.push(message.uuid);
+            } else {
+              $rootScope.users.splice($rootScope.users.indexOf(message.uuid), 1);
+            }
+          });
         }
       });
-      
-      
+      $rootScope.pubnub.history({
+        channel: 'rvb_ganked',
+        count: 500,
+        callback: function(m){
+          $rootScope.$apply(function(){
+            for (var i = 0; i < m[0].length; i++) {
+              var msg;
+              msg = m[0][i].user ? "[" + m[0][i].user + "] " + m[0][i].text : "[unknown] " + m[0][i];
+              $rootScope.messages.unshift(msg);
+            }
+          });
+        }
+      });
+      console.log("initialized");
       $rootScope.username = $scope.username;
       $hideDialog();      
     }
