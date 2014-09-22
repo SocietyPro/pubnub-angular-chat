@@ -38,7 +38,7 @@
       </div>-->
       <div>
       <h2>Connected People</h2>
-      <material-list>
+      <material-list layout="vertical">
          <material-item ng-repeat="user in users"> 
          {{user}}
          </material-item>
@@ -73,7 +73,7 @@
           </div>
         </div>
         <material-content flex>
-          <material-list>
+          <material-list layout="vertical">
              <material-item ng-repeat="message in messages" ng-class="{panicMsg:message.panic,backupMsg:message.backup,standMsg:message.stand}">
                [{{message.user}}] {{message.text}}
                <material-button class="backupBtn" ng-if="message.panic && message.user!=username" ng-click="backup()">Send Backup</material-button>

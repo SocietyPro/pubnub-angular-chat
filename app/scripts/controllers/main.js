@@ -146,9 +146,6 @@ angular.module('pajsApp')
         },
         presence   : function( message, env, channel ) {
           $rootScope.$apply(function  () {
-            console.log(message);
-            console.log(env);
-            console.log(channel);
             if (message.action == "join") {
               $rootScope.users.push(message.uuid);
             } else {
