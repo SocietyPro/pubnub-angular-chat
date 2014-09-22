@@ -10,7 +10,8 @@
     <!-- endbower -->
     <!-- endbuild -->
     <!-- build:css(.tmp) styles/main.css -->
-    <script src="http://cdn.pubnub.com/pubnub-3.5.1.js"></script>
+      <script src="http://cdn.pubnub.com/pubnub.min.js"></script>
+       <script src="https://cdn.pubnub.com/pubnub-crypto.min.js"></script>
         <script src="../bower_components/angular/angular.min.js" type="text/javascript"></script>
         <script src="../bower_components/pubnub-angular/lib/pubnub-angular.js"></script>
         <script src="../bower_components/angular-animate/angular-animate.js" type="text/javascript"></script>
@@ -62,16 +63,21 @@
       <div flex="80" layout="vertical">
         <div layout="horizontal">
           <material-input-group flex>
-            <material-input class="message" placeholder="New Message" type="text" ng-model="newMessage">
+            <material-input ng-keypress="keypressListener($event)" class="message" placeholder="New Message" type="text" ng-model="newMessage">
             </material-input></material-input-group>
           <div class="publishBtn">
             <material-button ng-click="publish()" >Send</material-button>
           </div>
+          <div class="panicBtn">
+            <material-button ng-click="panic()" >Panic</material-button>
+          </div>
         </div>
         <material-content flex>
           <material-list>
-             <material-item ng-repeat="message in messages">
-               {{message}}
+             <material-item ng-repeat="message in messages" ng-class="{panicMsg:message.panic,backupMsg:message.backup,standMsg:message.stand}">
+               [{{message.user}}] {{message.text}}
+               <material-button class="backupBtn" ng-if="message.panic && message.user!=username" ng-click="backup()">Send Backup</material-button>
+               <material-button class="standBtn" ng-if="message.panic && message.user!=username" ng-click="stand()">Stand Down</material-button>
              </material-item> 
              
           </material-list>

@@ -49,15 +49,63 @@ angular.module('pajsApp')
 
     $scope.publish = function() {
       console.log('publish', $scope);
+      var date = new Date();
       $rootScope.pubnub.publish({
         channel: 'rvb_ganked',
         message: {
           text: $scope.newMessage,
-          user: $rootScope.username
+          user: $rootScope.username,
+          date: date
         }
       });
       return $scope.newMessage = '';
     };
+
+    $scope.panic = function () {
+      console.log('pacnic',$scope);
+      var date = new Date();
+      $rootScope.pubnub.publish({
+        channel: 'rvb_ganked',
+        message: {
+          text: "Panic Alert! Under Attacked!",
+          user: $rootScope.username,
+          panic: true,
+          date: date
+        }
+      });
+    }
+    $scope.backup = function () {
+      console.log('backup',$scope);
+      var date = new Date();
+      $rootScope.pubnub.publish({
+        channel: 'rvb_ganked',
+        message: {
+          text: "I'm Going",
+          user: $rootScope.username,
+          backup: true,
+          date: date
+        }
+      });
+    }
+    $scope.stand = function () {
+      console.log('stand',$scope);
+      var date = new Date();
+      $rootScope.pubnub.publish({
+        channel: 'rvb_ganked',
+        message: {
+          text: "No thanks!",
+          user: $rootScope.username,
+          stand: true,
+          date: date
+        }
+      });
+    }
+    $scope.keypressListener = function (e) {
+      console.log(e);
+      if (e.keyCode == 13) {
+        $scope.publish();
+      }
+    }
 
   }])
 
@@ -72,12 +120,14 @@ angular.module('pajsApp')
         publish_key:'pub-c-8781d89b-1000-422d-b6ec-b75340d087bc',
         subscribe_key:'sub-c-fda9bb42-b75a-11e2-bc76-02ee2ddab7fe',
         uuid:$scope.uuid,
-        ssl:true
+        ssl:true,
+        cipher_key: 'my_super_secret_cipherkey'
       });
       $rootScope.pubnub.subscribe({
         restore: false,
         channel: 'rvb_ganked',
         connect: function (connect) {
+          console.log("connnected with SSL and AES encryption");
           $rootScope.pubnub.here_now({
             channel: "rvb_ganked",
             callback: function (u) {
@@ -89,10 +139,9 @@ angular.module('pajsApp')
           });
         },
         message: function(m) {
-            var msg;
-            msg = m.user ? "[" + m.user + "] " + m.text : "[unknown] " + m;
+          console.log(m);
             return $rootScope.$apply(function() {
-              return $rootScope.messages.unshift(msg);
+              return $rootScope.messages.unshift(m);
             });
         },
         presence   : function( message, env, channel ) {
@@ -110,14 +159,11 @@ angular.module('pajsApp')
       });
       $rootScope.pubnub.history({
         channel: 'rvb_ganked',
-        count: 500,
+        count: 100,
         callback: function(m){
+          console.log(m[0]);
           $rootScope.$apply(function(){
-            for (var i = 0; i < m[0].length; i++) {
-              var msg;
-              msg = m[0][i].user ? "[" + m[0][i].user + "] " + m[0][i].text : "[unknown] " + m[0][i];
-              $rootScope.messages.unshift(msg);
-            }
+              $rootScope.messages = m[0].reverse();
           });
         }
       });

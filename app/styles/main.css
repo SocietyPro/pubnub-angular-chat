@@ -18,10 +18,35 @@ material-input-group {
 .message {
   width: 668px;
 }
-.publishBtn {
-  margin-right: -25px;
-}
 .publishBtn>material-button {
   margin: 10px;
   height: 25px;
+}
+.panicBtn {
+  margin-right: -100px;
+}
+.panicBtn>material-button {
+  margin: 10px;
+  height: 25px;
+  background-color: red;
+}
+.panicBtn>material-button:hover, .panicBtn>material-button:focus {
+  background-color: firebrick;
+}
+.panicMsg {
+  color: red;
+}
+.backupBtn {
+  margin-left: 110px;
+  color: green;
+}
+.standBtn {
+  margin-left: 50px;
+  color: orangered;
+}
+.backupMsg {
+  color: green; 
+}
+.standMsg {
+  color: orangered; 
 }
